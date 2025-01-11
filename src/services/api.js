@@ -8,11 +8,10 @@ const defaultHeaders = {
   'Accept': 'application/json'
 };
 
-// Enhanced fetch with better CORS handling
+// Enhanced fetch with simpler CORS handling
 const safeFetch = async (url, options = {}) => {
   const defaultOptions = {
     mode: 'cors',
-    credentials: 'include',
     headers: {
       ...defaultHeaders,
       ...options.headers
