@@ -1,0 +1,231 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .glass-card {
+    @apply bg-gray-900/30 backdrop-blur-xl border-white/10;
+    box-shadow: 
+      0 4px 6px -1px rgba(0, 0, 0, 0.1),
+      0 2px 4px -1px rgba(0, 0, 0, 0.06),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+  }
+  
+  .btn-primary {
+    @apply px-4 py-2 bg-dark-accent hover:bg-blue-600 text-white rounded-lg transition-colors;
+  }
+  
+  .input-primary {
+    @apply w-full px-4 py-2 bg-dark-secondary text-white rounded-lg border border-gray-700 focus:outline-none focus:border-dark-accent;
+  }
+
+  .ai-message {
+    @apply bg-gradient-to-br from-violet-900/40 to-indigo-900/40 backdrop-blur-sm;
+  }
+  
+  .user-message {
+    @apply bg-gradient-to-br from-blue-600/20 to-violet-600/20 backdrop-blur-sm;
+  }
+  
+  .chat-container {
+    @apply bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-md;
+  }
+
+  .feature-card {
+    @apply transform transition-all duration-300 hover:scale-105 hover:shadow-2xl;
+    background: linear-gradient(
+      to bottom right,
+      rgba(255, 255, 255, 0.05),
+      rgba(255, 255, 255, 0.02)
+    );
+  }
+
+  .glow-effect {
+    @apply relative;
+  }
+
+  .glow-effect::after {
+    @apply content-[''] absolute -inset-0.5 bg-gradient-to-r from-violet-600/50 to-blue-600/50 rounded-lg blur opacity-0 transition-opacity duration-300;
+  }
+
+  .glow-effect:hover::after {
+    @apply opacity-100;
+  }
+}
+
+body {
+  @apply text-gray-200;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.bg-gradient-wrapper {
+  @apply fixed inset-0 w-full h-full z-[-1];
+  background: linear-gradient(to bottom right, #1a1a1a, #2d2d2d);
+}
+
+.bg-effects {
+  @apply fixed inset-0 w-full h-full overflow-hidden pointer-events-none z-[-1];
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 0.8; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 1; }
+}
+
+@keyframes shimmer {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+
+.animate-pulse {
+  animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.animate-blink {
+  animation: blink 0.8s steps(2) infinite;
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite linear;
+  background: linear-gradient(to right, transparent 0%, rgba(255,255,255,0.05) 50%, transparent 100%);
+  background-size: 1000px 100%;
+}
+
+.delay-700 {
+  animation-delay: 700ms;
+}
+
+.delay-1000 {
+  animation-delay: 1000ms;
+}
+
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+
+.rotate-y-0 {
+  transform: rotateY(0deg);
+}
+
+/* Add these updated text selection rules */
+* {
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+}
+
+.message-content {
+  pointer-events: auto !important;
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+}
+
+.message-content * {
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+}
+
+.prose-invert {
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+}
+
+.prose-invert * {
+  pointer-events: auto !important;
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+}
+
+/* Fix markdown content selection */
+.prose-invert pre,
+.prose-invert code,
+.prose-invert p,
+.prose-invert ul,
+.prose-invert ol,
+.prose-invert li {
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+}
+
+/* Prevent selection on interactive elements */
+button, input, .ModelBadge {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+}
+
+/* Add these custom scrollbar styles */
+::-webkit-scrollbar {
+  width: 6px;  /* width of the entire scrollbar */
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;  /* color of the tracking area */
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.1);  /* color of the scroll thumb */
+  border-radius: 20px;  /* roundness of the scroll thumb */
+  transition: background-color 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Hide scrollbar when not hovering */
+.scroll-hover {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;  /* IE and Edge */
+}
+
+.scroll-hover::-webkit-scrollbar {
+  display: none;
+}
+
+.scroll-hover:hover {
+  scrollbar-width: thin;
+  -ms-overflow-style: auto;
+}
+
+.scroll-hover:hover::-webkit-scrollbar {
+  display: block;
+}
