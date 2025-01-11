@@ -1,6 +1,40 @@
-const API_URL = process.env.REACT_APP_API_URL || 'https://unilife-back-python.onrender.com/api';
+const API_URL = process.env.REACT_APP_MAIN_API_URL || 'https://unilife-back-python.onrender.com/api';
 const MAX_RETRIES = 3;
-const TIMEOUT = 60000; // Increase timeout to 60 seconds
+const TIMEOUT = 60000;
+
+// Add default headers and CORS handling
+const defaultHeaders = {
+  'Content-Type': 'application/json',
+  'Accept': 'application/json',
+  'Access-Control-Allow-Origin': '*'
+};
+
+// Enhanced fetch with SSL and error handling
+const safeFetch = async (url, options = {}) => {
+  try {
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        ...defaultHeaders,
+        ...options.headers
+      },
+      mode: 'cors',
+      credentials: 'same-origin'
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return response;
+  } catch (error) {
+    console.error('API Error:', error);
+    if (error.message.includes('Failed to fetch')) {
+      throw new Error('Connection failed. Please check your internet connection.');
+    }
+    throw error;
+  }
+};
 
 export const uploadFile = async (file) => {
   const formData = new FormData();
@@ -12,39 +46,25 @@ export const uploadFile = async (file) => {
   
   while (retries > 0) {
     try {
-      const response = await fetch(`${API_URL}/upload`, {
+      const response = await safeFetch(`${API_URL}/upload`, {
         method: 'POST',
         body: formData,
         signal: controller.signal,
       });
 
       clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      if (data.error) {
-        throw new Error(data.error);
-      }
-      return { status: 'success', analysis: data.analysis };
+      return await response.json();
     } catch (error) {
       retries--;
-      if (error.name === 'AbortError') {
-        throw new Error('Upload timed out. Please try again with a smaller file or better connection.');
-      }
-      if (retries === 0) {
-        throw new Error('Upload failed after multiple attempts. Please try again.');
-      }
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Increased delay between retries
+      if (retries === 0) throw error;
+      await new Promise(resolve => setTimeout(resolve, 2000));
     }
   }
 };
 
 export const sendQuery = async (message, isDocMode = false) => {
   try {
-    const response = await fetch(`${API_URL}/chat`, {
+    const response = await safeFetch(`${API_URL}/chat`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -62,7 +82,7 @@ export const sendQuery = async (message, isDocMode = false) => {
 
 export const checkHealth = async () => {
   try {
-    const response = await fetch(`${API_URL}/health`);
+    const response = await safeFetch(`${API_URL}/health`);
     return response.ok;
   } catch (error) {
     return false;
@@ -85,7 +105,7 @@ export const processAnalysis = async (analysisText) => {
 
 export const createQuiz = async (notes) => {
   try {
-    const response = await fetch(`${API_URL}/create-quiz`, {
+    const response = await safeFetch(`${API_URL}/create-quiz`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -107,7 +127,7 @@ export const createQuiz = async (notes) => {
 
 export const generateStudyGuide = async (notes) => {
   try {
-    const response = await fetch(`${API_URL}/generate-study-guide`, {
+    const response = await safeFetch(`${API_URL}/generate-study-guide`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -127,7 +147,7 @@ export const generateStudyGuide = async (notes) => {
 
 export const generateKnowledgeGraph = async (notes) => {
   try {
-    const response = await fetch(`${API_URL}/generate-knowledge-graph`, {
+    const response = await safeFetch(`${API_URL}/generate-knowledge-graph`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -147,7 +167,7 @@ export const generateKnowledgeGraph = async (notes) => {
 
 export const generateFlashcards = async (notes) => {
   try {
-    const response = await fetch(`${API_URL}/generate-flashcards`, {
+    const response = await safeFetch(`${API_URL}/generate-flashcards`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -167,7 +187,7 @@ export const generateFlashcards = async (notes) => {
 
 export const trackProgress = async (progressData) => {
   try {
-    const response = await fetch(`${API_URL}/track-progress`, {
+    const response = await safeFetch(`${API_URL}/track-progress`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
