@@ -2,24 +2,31 @@ const API_URL = process.env.REACT_APP_MAIN_API_URL || 'https://unilife-back-pyth
 const MAX_RETRIES = 3;
 const TIMEOUT = 60000;
 
-// Add default headers and CORS handling
+// Updated headers configuration
 const defaultHeaders = {
   'Content-Type': 'application/json',
-  'Accept': 'application/json',
-  'Access-Control-Allow-Origin': '*'
+  'Accept': 'application/json'
 };
 
-// Enhanced fetch with SSL and error handling
+// Enhanced fetch with better CORS handling
 const safeFetch = async (url, options = {}) => {
+  const defaultOptions = {
+    mode: 'cors',
+    credentials: 'include',
+    headers: {
+      ...defaultHeaders,
+      ...options.headers
+    }
+  };
+
   try {
     const response = await fetch(url, {
+      ...defaultOptions,
       ...options,
       headers: {
-        ...defaultHeaders,
+        ...defaultOptions.headers,
         ...options.headers
-      },
-      mode: 'cors',
-      credentials: 'same-origin'
+      }
     });
 
     if (!response.ok) {
@@ -29,9 +36,6 @@ const safeFetch = async (url, options = {}) => {
     return response;
   } catch (error) {
     console.error('API Error:', error);
-    if (error.message.includes('Failed to fetch')) {
-      throw new Error('Connection failed. Please check your internet connection.');
-    }
     throw error;
   }
 };
@@ -66,9 +70,6 @@ export const sendQuery = async (message, isDocMode = false) => {
   try {
     const response = await safeFetch(`${API_URL}/chat`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
       body: JSON.stringify({
         message,
         mode: isDocMode ? 'document' : 'general'
