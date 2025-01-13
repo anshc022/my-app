@@ -49,15 +49,29 @@ export const uploadFile = async (file) => {
   
   while (retries > 0) {
     try {
-      const response = await safeFetch(`${API_URL}/upload`, {
+      const response = await fetch(`${API_URL}/upload`, {
         method: 'POST',
         body: formData,
         signal: controller.signal,
+        mode: 'cors',
+        headers: {
+          'Accept': 'application/json',
+          // Don't set Content-Type here, let the browser set it with the boundary
+        },
       });
 
       clearTimeout(timeoutId);
-      return await response.json();
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Upload error:', errorData);
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
     } catch (error) {
+      console.error('Upload attempt failed:', error);
       retries--;
       if (retries === 0) throw error;
       await new Promise(resolve => setTimeout(resolve, 2000));

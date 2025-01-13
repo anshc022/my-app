@@ -24,7 +24,7 @@ load_dotenv()
 
 # Configuration
 class Config:
-    UPLOAD_FOLDER = '/tmp/uploads'  # Use /tmp for Render
+    UPLOAD_FOLDER = os.path.join(os.getcwd(), 'tmp', 'uploads')  # Change this line
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB
     ALLOWED_EXTENSIONS = {'pdf', 'png', 'jpg', 'jpeg', 'gif', 'bmp', 'tiff'}
     GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')  # Move to environment variable
@@ -78,41 +78,46 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in Config.ALLOWED_EXTENSIONS
 
 def process_file(file):
-    global current_context
-    filename = secure_filename(file.filename)
-    filepath = os.path.join(Config.UPLOAD_FOLDER, filename)
-    
-    if not os.path.exists(Config.UPLOAD_FOLDER):
-        os.makedirs(Config.UPLOAD_FOLDER)
-    
-    file.save(filepath)
-    
     try:
-        if filename.lower().endswith('.pdf'):
-            reader = PdfReader(filepath)
-            text = "\n".join(page.extract_text() for page in reader.pages)
-        else:
-            # Enhanced image processing
-            image = Image.open(filepath)
-            # Improve image quality for OCR
-            image = image.convert('L')  # Convert to grayscale
-            text = pytesseract.image_to_string(
-                image,
-                config='--psm 1 --oem 3'  # Use more accurate OCR mode
-            )
+        logger.debug(f"Processing file: {file.filename}")
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(Config.UPLOAD_FOLDER, filename)
         
-        # Clean up the extracted text
-        text = ' '.join(text.split())
-        current_context = text
-        return text
-    
+        if not os.path.exists(Config.UPLOAD_FOLDER):
+            os.makedirs(Config.UPLOAD_FOLDER)
+        
+        file.save(filepath)
+        
+        try:
+            if filename.lower().endswith('.pdf'):
+                logger.debug("Processing PDF file")
+                reader = PdfReader(filepath)
+                text = "\n".join(page.extract_text() for page in reader.pages)
+            else:
+                logger.debug("Processing image file")
+                image = Image.open(filepath)
+                image = image.convert('L')
+                text = pytesseract.image_to_string(image, config='--psm 1 --oem 3')
+            
+            text = ' '.join(text.split())
+            analysis = structured_analysis(text)
+            
+            return text, analysis
+            
+        except Exception as e:
+            logger.error(f"File processing error: {str(e)}")
+            raise
+            
     except Exception as e:
         logger.error(f"File processing error: {str(e)}")
         raise
     finally:
-        # Clean up uploaded file
         if os.path.exists(filepath):
-            os.remove(filepath)
+            try:
+                os.remove(filepath)
+                logger.debug(f"Cleaned up file: {filepath}")
+            except Exception as e:
+                logger.error(f"Error cleaning up file: {str(e)}")
 
 # Update other functions to use the single model
 def structured_analysis(text):
@@ -411,26 +416,60 @@ def show_docs():
                          redis_status="Connected" if redis_client else "Disabled")
 
 # Routes
-@app.route('/api/upload', methods=['POST'])
+@app.route('/api/upload', methods=['POST', 'OPTIONS'])
 @track_metrics('upload')
 def upload_file():
     try:
+        # Enhanced debugging
+        logger.debug("=== Upload Request Details ===")
+        logger.debug(f"Request Method: {request.method}")
+        logger.debug(f"Request Files: {request.files}")
+        logger.debug(f"Request Headers: {dict(request.headers)}")
+        logger.debug(f"Request Form: {request.form}")
+        logger.debug(f"Content Type: {request.content_type}")
+        
+        if request.method == 'OPTIONS':
+            response = app.make_default_options_response()
+            response.headers.update({
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'POST, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type',
+            })
+            return response
+
+        # Ensure upload directory exists
+        os.makedirs(Config.UPLOAD_FOLDER, exist_ok=True)
+        logger.debug(f"Upload directory: {Config.UPLOAD_FOLDER}")
+
         if 'file' not in request.files:
-            return jsonify({'error': 'No file uploaded'}), 400
-        
+            logger.error("No file in request.files")
+            return jsonify({'error': 'No file uploaded', 'debug_info': dict(request.files)}), 400
+
         file = request.files['file']
-        if file.filename == '' or not allowed_file(file.filename):
-            return jsonify({'error': 'Invalid file type'}), 400
         
-        analysis = structured_analysis(process_file(file))
-        return jsonify({
-            'status': 'success',
-            'analysis': analysis,
-            'timestamp': datetime.now().isoformat()
-        })
+        if file.filename == '':
+            logger.error("Empty filename")
+            return jsonify({'error': 'No file selected'}), 400
+
+        if not allowed_file(file.filename):
+            logger.error(f"Invalid file type: {file.filename}")
+            return jsonify({'error': 'Invalid file type'}), 400
+
+        # Process the file
+        try:
+            text, analysis = process_file(file)
+            return jsonify({
+                'status': 'success',
+                'analysis': analysis,
+                'timestamp': datetime.now().isoformat()
+            })
+        except Exception as e:
+            logger.exception("File processing error")
+            return jsonify({'error': f'File processing failed: {str(e)}'}), 500
+
     except Exception as e:
-        logger.error(f"Upload error: {str(e)}")
-        return jsonify({'error': str(e)}), 500
+        logger.exception("Upload error")
+        return jsonify({'error': str(e), 'traceback': str(e.__traceback__)}), 500
 
 @app.route('/api/create-quiz', methods=['POST'])
 def create_quiz():
@@ -623,6 +662,11 @@ def internal_error(error):
     return jsonify({'error': 'Internal Server Error', 'message': str(error)}), 500
 
 # Add production configuration
+@app.before_first_request
+def setup_upload_directory():
+    os.makedirs(Config.UPLOAD_FOLDER, exist_ok=True)
+    logger.info(f"Upload directory initialized: {Config.UPLOAD_FOLDER}")
+
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 5000))
     debug = os.getenv('FLASK_ENV') == 'development'

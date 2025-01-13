@@ -28,9 +28,21 @@ function FileUpload({ onFileProcessed, className }) {
 
   const processFile = async (file) => {
     try {
+      if (!file) {
+        throw new Error('No file selected');
+      }
+
+      console.log('Starting file upload:', {
+        name: file.name,
+        size: file.size,
+        type: file.type
+      });
+
       setCurrentUpload(file);
       setStatus(`Processing ${file.name}...`);
+
       const response = await uploadFile(file);
+      console.log('Upload response:', response);
       
       if (response.status === 'success') {
         setStatus(`${file.name} processed successfully!`);
@@ -42,7 +54,7 @@ function FileUpload({ onFileProcessed, className }) {
       }
     } catch (error) {
       console.error('Upload error:', error);
-      setStatus(`Failed to process ${file.name}: ${error.message}`);
+      setStatus(`Failed to process ${file?.name}: ${error.message}`);
     } finally {
       setCurrentUpload(null);
     }
