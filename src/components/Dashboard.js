@@ -8,6 +8,7 @@ import QuizModal from './QuizModal';
 import StudyGuideModal from './StudyGuideModal';
 import { motion, AnimatePresence } from 'framer-motion';
 import KnowledgeGraphModal from './KnowledgeGraphModal';
+import WelcomeUI from './WelcomeUI';
 
 function Dashboard() {
   const [analysisData, setAnalysisData] = useState(null);
@@ -27,9 +28,21 @@ function Dashboard() {
   const [chatContext, setChatContext] = useState(null);
   const [chatMode, setChatMode] = useState('general');
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
+  const [hasVisited, setHasVisited] = useState(() => {
+    return localStorage.getItem('hasVisitedBefore') === 'true';
+  });
+  const [uploadStatus, setUploadStatus] = useState({
+    isUploading: false,
+    progress: 0,
+    fileName: '',
+    phase: '' // 'preparing', 'uploading', 'processing', 'complete', 'error'
+  });
   const navigate = useNavigate();
 
-  const handleFileProcessed = async (response) => {
+  const handleFileProcessed = async (response, status) => {
+    // Update upload status from FileUpload component
+    setUploadStatus(status);
+    
     try {
       const processed = await processAnalysis(response.analysis);
       setAnalysisData(processed);
@@ -132,6 +145,11 @@ function Dashboard() {
     setIsMobileMenuOpen(false);
   };
 
+  const handleGetStarted = () => {
+    setHasVisited(true);
+    localStorage.setItem('hasVisitedBefore', 'true');
+  };
+
   // Add mobile drawer component
   const MobileDrawer = () => (
     <motion.div
@@ -207,8 +225,121 @@ function Dashboard() {
     </button>
   );
 
+  const FeatureBar = () => (
+    <div className="w-full bg-gray-800/50 border-b border-white/10 backdrop-blur-md">
+      <div className="max-w-7xl mx-auto px-4 py-2">
+        <div className="flex items-center gap-2 overflow-x-auto scrollbar-none">
+          {/* Upload Button - Always Active */}
+          <button
+            onClick={() => document.getElementById('mobile-file-input')?.click()}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-violet-600/20 text-violet-300
+                     hover:bg-violet-600/30 transition-all duration-200 whitespace-nowrap"
+          >
+            <span>📄</span>
+            <span className="text-sm font-medium">Upload PDF</span>
+          </button>
+
+          {/* Feature Buttons */}
+          {[
+            { id: 'summary', icon: '📝', label: 'Summary', action: () => handleFeatureClick('Summary') },
+            { id: 'flashcards', icon: '🎴', label: 'Flashcards', action: () => setIsFlashcardsOpen(true) },
+            { id: 'quiz', icon: '❓', label: 'Quiz', action: handleCreateQuiz, loading: isGeneratingQuiz },
+            { id: 'guide', icon: '📚', label: 'Study Guide', action: handleStudyGuideClick, loading: isGeneratingStudyGuide },
+            { id: 'graph', icon: '📊', label: 'Knowledge Graph', action: handleKnowledgeGraphClick, loading: isGeneratingGraph }
+          ].map((feature) => (
+            <button
+              key={feature.id}
+              onClick={feature.action}
+              disabled={!analysisData || feature.loading}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200
+                       ${!analysisData ? 'opacity-50 cursor-not-allowed text-gray-400' :
+                        feature.loading ? 'bg-violet-500/20 text-violet-300' :
+                        'bg-gray-700/50 text-gray-300 hover:bg-gray-700/80'}
+                       whitespace-nowrap`}
+            >
+              <span>{feature.loading ? '⌛' : feature.icon}</span>
+              <span className="text-sm font-medium">{feature.loading ? 'Loading...' : feature.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  const UploadStatus = () => {
+    if (!uploadStatus.isUploading) return null;
+
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        className="absolute left-1/2 -translate-x-1/2 top-20 z-50 w-[90%] max-w-md"
+      >
+        <div className="bg-gray-900/95 border border-white/10 rounded-xl p-4 backdrop-blur-md shadow-xl">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-gray-200">
+                {uploadStatus.phase === 'preparing' && '📋 Preparing...'}
+                {uploadStatus.phase === 'uploading' && '📤 Uploading...'}
+                {uploadStatus.phase === 'processing' && '⚡ Processing...'}
+                {uploadStatus.phase === 'complete' && '✅ Complete!'}
+                {uploadStatus.phase === 'error' && '❌ Error'}
+              </span>
+              <span className="text-sm text-gray-400">
+                {uploadStatus.progress > 0 && `${Math.round(uploadStatus.progress)}%`}
+              </span>
+            </div>
+            
+            <div className="relative h-1.5 bg-gray-800 rounded-full overflow-hidden">
+              <motion.div
+                className={`absolute inset-y-0 left-0 rounded-full ${
+                  uploadStatus.phase === 'error' ? 'bg-red-500' :
+                  uploadStatus.phase === 'complete' ? 'bg-green-500' :
+                  'bg-violet-500'
+                }`}
+                initial={{ width: 0 }}
+                animate={{ width: `${uploadStatus.progress}%` }}
+                transition={{ duration: 0.3 }}
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-gray-400 truncate max-w-[80%]">
+                {uploadStatus.fileName}
+              </p>
+              <AnimatePresence mode="wait">
+                {uploadStatus.phase === 'complete' && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.5 }}
+                    className="flex items-center gap-2"
+                  >
+                    <span className="text-xs text-green-400">Ready!</span>
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    );
+  };
+
   return (
     <div className="min-h-screen w-full bg-gray-900 relative overflow-hidden">
+      {/* Add UploadStatus at the top level */}
+      <AnimatePresence>
+        {uploadStatus.isUploading && <UploadStatus />}
+      </AnimatePresence>
+
+      {/* Add Welcome UI */}
+      <AnimatePresence>
+        {!hasVisited && <WelcomeUI onGetStarted={handleGetStarted} />}
+      </AnimatePresence>
+
       {/* Enhanced Background Effects */}
       <div className="absolute inset-0 z-0">
         <div className="absolute top-0 left-0 w-[800px] h-[800px] rounded-full bg-violet-600/10 blur-[150px] animate-pulse"></div>
@@ -257,15 +388,11 @@ function Dashboard() {
           </button>
         </header>
 
-        {/* Delete the second header that starts with "Enhanced Header with improved navigation" */}
-
-        {/* Continue with existing mobile drawer and content */}
-        <AnimatePresence>
-          {isMobileDrawerOpen && <MobileDrawer />}
-        </AnimatePresence>
+        {/* Feature Bar */}
+        <FeatureBar />
 
         {/* Main Content Area - Modified for full screen */}
-        <div className="flex-1 flex flex-col md:flex-row gap-4 p-4 h-[calc(100vh-80px)]">
+        <div className="flex-1 flex flex-col md:flex-row gap-4 p-4 h-[calc(100vh-144px)]">
           {/* Collapsible Sidebar - Add scroll-hover class */}
           <div className="hidden md:flex md:w-80 flex-col gap-4 transition-all duration-300 overflow-y-auto scroll-hover">
             {/* Mobile Toggle Button */}
@@ -280,7 +407,7 @@ function Dashboard() {
               {/* File Upload */}
               <div className="glass-card p-3 md:p-4 rounded-xl">
                 <h2 className="text-sm font-medium text-gray-400 mb-3">Upload Document</h2>
-                <FileUpload onFileProcessed={handleFileProcessed} />
+                <FileUpload onFileProcessed={handleFileProcessed} onStatusChange={setUploadStatus} />
               </div>
 
               {/* Feature Pills */}

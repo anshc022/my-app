@@ -18,6 +18,8 @@ module.exports = {
     'to-amber-500/5',
     'hover:from-amber-500/30',
     'hover:to-amber-500/10',
+    'scale-[1.02]',
+    'scale-[0.98]',
   ],
   theme: {
     extend: {
