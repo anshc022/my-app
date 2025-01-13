@@ -183,6 +183,7 @@ function Dashboard() {
               document.getElementById('mobile-file-input')?.click();
             }}
             gradient="from-blue-500 to-violet-500"
+            isPro={false}
           />
           <MobileFeatureButton
             icon="🎴"
@@ -220,6 +221,7 @@ function Dashboard() {
             label="Chat Assistant"
             onClick={() => setIsMobileDrawerOpen(false)}
             gradient="from-teal-500 to-cyan-500"
+            isPro={false}
           />
         </div>
 
@@ -235,33 +237,55 @@ function Dashboard() {
     </motion.div>
   );
 
-  // Add ProBadge component
-  const ProBadge = () => (
-    <div className="absolute -top-2 -right-2 z-10">
+  // Add TryBadge component
+  const TryBadge = () => (
+    <div className="absolute -top-0.5 -right-0.5 z-20 translate-x-1/3">
       <div className="relative">
-        <div className="px-2 py-0.5 text-[10px] font-bold bg-gradient-to-r from-amber-500 to-orange-500 
-                      rounded-full text-white shadow-lg 
-                      animate-pulse border border-amber-400/20">
-          PRO
+        <div className="px-2 py-0.5 text-[10px] font-semibold bg-gradient-to-r from-green-500 to-emerald-500 
+                      rounded-full text-white shadow-lg whitespace-nowrap
+                      animate-pulse border border-green-400/20">
+          TRY FREE
         </div>
-        <div className="absolute inset-0 bg-gradient-to-r from-amber-500 to-orange-500 
-                      rounded-full blur-lg opacity-40 animate-pulse"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-emerald-500 
+                      rounded-full blur-md opacity-40 animate-pulse"></div>
       </div>
     </div>
   );
 
-  // Update MobileFeatureButton to include ProBadge
+  // Update ProBadge component with lower positioning
+  const ProBadge = () => (
+    <div className="absolute -top-0.5 -right-0.5 z-20 translate-x-1/3">
+      <div className="relative">
+        <div className="px-2 py-0.5 text-[10px] font-semibold bg-gradient-to-r from-amber-500 to-orange-500 
+                      rounded-full text-white shadow-lg whitespace-nowrap
+                      animate-pulse border border-amber-400/20 cursor-pointer"
+             onClick={(e) => {
+               e.stopPropagation();
+               // Add your pro upgrade logic here
+               alert('Try our Pro features to unlock this!');
+             }}>
+          TRY PRO
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-r from-amber-500 to-orange-500 
+                      rounded-full blur-md opacity-40 animate-pulse"></div>
+      </div>
+    </div>
+  );
+
+  // Update MobileFeatureButton to set isPro conditionally
   const MobileFeatureButton = ({ icon, label, onClick, disabled, loading, gradient, isPro = true }) => (
     <motion.button
       onClick={onClick}
       disabled={disabled || loading}
       whileTap={{ scale: 0.95 }}
-      className={`relative flex flex-col items-center justify-center p-4 rounded-xl
-                 overflow-hidden transition-all duration-300
+      className={`relative flex flex-col items-center justify-center p-4 rounded-xl mt-3 mx-1
+                 overflow-visible transition-all duration-300
                  ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-lg hover:shadow-black/20'}
                  ${loading ? 'animate-pulse' : ''}`}
     >
-      {isPro && <ProBadge />}
+      {/* Only show ProBadge if feature is Pro */}
+      {isPro ? <ProBadge /> : <TryBadge />}
+      
       {/* Gradient Background */}
       <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-10`} />
       
@@ -281,11 +305,12 @@ function Dashboard() {
       {/* Active Indicator */}
       {!disabled && !loading && (
         <div className="absolute bottom-2 right-2 w-1.5 h-1.5 rounded-full bg-green-400" />
-      )}
+      )
+      }
     </motion.button>
   );
 
-  // Update FeatureBar component to include ProBadge
+  // Update FeatureBar with non-Pro features
   const FeatureBar = () => (
     <div className="md:hidden w-full bg-gray-900/95 border-b border-white/10 backdrop-blur-lg">
       <div className="max-w-7xl mx-auto px-2 py-3">
@@ -293,7 +318,7 @@ function Dashboard() {
         <div className="flex items-center gap-2 overflow-x-auto 
                       scrollbar-thin scrollbar-thumb-violet-500/20 scrollbar-track-transparent
                       pb-2 -mb-2">
-          {/* Upload Button with special styling */}
+          {/* Upload Button without Pro badge */}
           <motion.button
             whileTap={{ scale: 0.95 }}
             onClick={(e) => {
@@ -305,17 +330,17 @@ function Dashboard() {
                       border border-white/10 hover:border-violet-500/50
                       transition-all duration-300"
           >
-            <ProBadge />
             <span className="text-lg">📄</span>
             <span className="text-sm font-medium text-violet-200">Upload</span>
           </motion.button>
 
           {/* Feature Buttons with consistent styling */}
           {[
-            { id: 'flashcards', icon: '🎴', label: 'Cards', action: () => setIsFlashcardsOpen(true) },
-            { id: 'quiz', icon: '❓', label: 'Quiz', action: handleCreateQuiz, loading: isGeneratingQuiz },
-            { id: 'guide', icon: '📚', label: 'Guide', action: handleStudyGuideClick, loading: isGeneratingStudyGuide },
-            { id: 'graph', icon: '📊', label: 'Graph', action: handleKnowledgeGraphClick, loading: isGeneratingGraph }
+            { id: 'flashcards', icon: '🎴', label: 'Cards', action: () => setIsFlashcardsOpen(true), isPro: true },
+            { id: 'quiz', icon: '❓', label: 'Quiz', action: handleCreateQuiz, loading: isGeneratingQuiz, isPro: true },
+            { id: 'guide', icon: '📚', label: 'Guide', action: handleStudyGuideClick, loading: isGeneratingStudyGuide, isPro: true },
+            { id: 'graph', icon: '📊', label: 'Graph', action: handleKnowledgeGraphClick, loading: isGeneratingGraph, isPro: true },
+            { id: 'chat', icon: '💭', label: 'Chat', action: () => {}, isPro: false }
           ].map((feature) => (
             <motion.button
               key={feature.id}
@@ -329,7 +354,7 @@ function Dashboard() {
                           : 'bg-gray-800/50 hover:bg-gray-700/50 hover:border-violet-500/30 active:bg-gray-700/70'}
                         border border-white/5`}
             >
-              <ProBadge />
+              {feature.isPro ? <ProBadge /> : <TryBadge />}
               {/* Icon and Label */}
               <span className="text-lg">{feature.loading ? '⌛' : feature.icon}</span>
               <span className="text-sm font-medium text-gray-200">
@@ -434,7 +459,7 @@ function Dashboard() {
   };
 
   // Update sidebar feature buttons to include ProBadge
-  const SidebarFeatureButton = ({ icon, title, onClick, disabled, loading }) => (
+  const SidebarFeatureButton = ({ icon, title, onClick, disabled, loading, isPro = true }) => (
     <button
       onClick={onClick}
       disabled={disabled || loading}
@@ -442,10 +467,31 @@ function Dashboard() {
                  disabled:opacity-50 disabled:cursor-not-allowed
                  hover:bg-gray-800/50 text-gray-300"
     >
-      <ProBadge />
+      {isPro ? <ProBadge /> : <TryBadge />}
       <span>{icon}</span>
       <span className="text-sm">{title}</span>
     </button>
+  );
+
+  // Update feature buttons in the header section
+  const HeaderFeatureButton = ({ feature }) => (
+    <motion.button
+      whileTap={{ scale: 0.95 }}
+      onClick={feature.action}
+      disabled={!analysisData || feature.loading}
+      className={`relative flex-shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl
+                transition-all duration-300 relative group
+                ${!analysisData || feature.loading 
+                  ? 'opacity-50 cursor-not-allowed bg-gray-800/50' 
+                  : 'bg-gray-800/50 hover:bg-gray-700/50 hover:border-violet-500/30 active:bg-gray-700/70'}
+                border border-white/5`}
+    >
+      {feature.isPro ? <ProBadge /> : <TryBadge />}
+      <span className="text-lg">{feature.loading ? '⌛' : feature.icon}</span>
+      <span className="text-sm font-medium text-gray-200">
+        {feature.loading ? 'Loading...' : feature.label}
+      </span>
+    </motion.button>
   );
 
   return (
@@ -480,25 +526,74 @@ function Dashboard() {
       </div>
 
       <div className="max-w-[100rem] mx-auto h-screen flex flex-col relative z-10">
-        {/* Simplified Header - Only Back Button */}
-        <header className="flex justify-start items-center p-4 glass-card backdrop-blur-md border-b border-white/10 sticky top-0 z-50">
-          <button
-            onClick={handleBack}
-            className="group flex items-center gap-2 px-3 py-2 rounded-lg 
-                      bg-gray-800/50 hover:bg-gray-700/50 transition-all duration-300
-                      text-gray-400 hover:text-white active:scale-95"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            <span className="text-sm font-medium">Back</span>
-          </button>
+        {/* Integrated Header with Feature Bar */}
+        <header className="glass-card backdrop-blur-md border-b border-white/10 sticky top-0 z-50">
+          {/* Upper Header Section */}
+          <div className="flex items-center p-4">
+            <button
+              onClick={handleBack}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg 
+                        bg-gray-800/50 hover:bg-gray-700/50 transition-all duration-300
+                        text-gray-400 hover:text-white active:scale-95"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              <span className="text-sm font-medium">Back</span>
+            </button>
+
+            {/* Feature Bar - Now inside header */}
+            <div className="flex-1 ml-4">
+              <div className="flex items-center gap-2 overflow-x-auto 
+                            scrollbar-thin scrollbar-thumb-violet-500/20 scrollbar-track-transparent">
+                {/* Upload Button */}
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    document.getElementById('mobile-file-input')?.click();
+                  }}
+                  className="relative flex-shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl
+                            bg-gradient-to-r from-violet-600/20 to-blue-600/20 
+                            border border-white/10 hover:border-violet-500/50
+                            transition-all duration-300"
+                >
+                  <span className="text-lg">📄</span>
+                  <span className="text-sm font-medium text-violet-200">Upload</span>
+                </motion.button>
+
+                {/* Feature Buttons */}
+                {[
+                  { id: 'upload', icon: '📄', label: 'Upload', action: (e) => {
+                      e.preventDefault();
+                      document.getElementById('mobile-file-input')?.click();
+                    }, isPro: false },
+                  { id: 'chat', icon: '💭', label: 'Chat', action: () => {}, isPro: false },
+                  { id: 'flashcards', icon: '🎴', label: 'Cards', action: () => setIsFlashcardsOpen(true), isPro: true },
+                  { id: 'quiz', icon: '❓', label: 'Quiz', action: handleCreateQuiz, loading: isGeneratingQuiz, isPro: true },
+                  { id: 'guide', icon: '📚', label: 'Guide', action: handleStudyGuideClick, loading: isGeneratingStudyGuide, isPro: true },
+                  { id: 'graph', icon: '📊', label: 'Graph', action: handleKnowledgeGraphClick, loading: isGeneratingGraph, isPro: true }
+                ].map((feature) => (
+                  <HeaderFeatureButton key={feature.id} feature={feature} />
+                ))}
+              </div>
+            </div>
+
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setIsMobileDrawerOpen(true)}
+              className="ml-4 p-2 hover:bg-gray-800/50 rounded-lg md:hidden"
+            >
+              <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
+              </svg>
+            </button>
+          </div>
         </header>
 
-        {/* Rest of the components remain unchanged */}
-        <FeatureBar />
-
-        {/* Main Content Area - Modified for full screen */}
+        {/* Remove the standalone FeatureBar component */}
+        
+        {/* Rest of the component remains unchanged */}
         <div className="flex-1 flex flex-col md:flex-row gap-4 p-4 h-[calc(100vh-144px)]">
           {/* Collapsible Sidebar - Add scroll-hover class */}
           <div className="hidden md:flex md:w-80 flex-col gap-4 transition-all duration-300 overflow-y-auto scroll-hover">
@@ -522,14 +617,16 @@ function Dashboard() {
                 <h2 className="text-sm font-medium text-gray-400 mb-3">Features</h2>
                 <div className="space-y-2">
                   {[
-                    { title: "Flashcards", icon: "🎴" }
+                    { title: "Flashcards", icon: "🎴", isPro: true },
+                    { title: "Chat", icon: "💭", isPro: false }
                   ].map((feature, i) => (
                     <SidebarFeatureButton
                       key={i}
                       icon={feature.icon}
                       title={feature.title}
                       onClick={() => analysisData && handleFeatureClick(feature.title)}
-                      disabled={!analysisData}
+                      disabled={!analysisData && feature.isPro}
+                      isPro={feature.isPro}
                     />
                   ))}
                   <button
@@ -624,7 +721,7 @@ function Dashboard() {
             className="fixed inset-x-0 bottom-0 z-50 md:hidden"
           >
             <div className="glass-card rounded-t-xl p-4 shadow-lg border-t border-white/10 backdrop-blur-md">
-              <div className="flex justify-between items-center mb-4">
+              <div className="flex justify-between items-center mb4">
                 <h3 className="text-lg font-semibold text-gray-200">Features</h3>
                 <button
                   onClick={() => setIsMobileMenuOpen(false)}

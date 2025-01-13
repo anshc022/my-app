@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { uploadFile } from '../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -17,6 +17,8 @@ function FileUpload({ onFileProcessed, onStatusChange, className }) {
     progress: 0,
     message: ''
   });
+
+  const fileInputRef = useRef(null);
 
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -189,7 +191,7 @@ function FileUpload({ onFileProcessed, onStatusChange, className }) {
 
   const handleMobileUpload = () => {
     // Trigger file input click for mobile
-    document.getElementById('mobile-file-input').click();
+    fileInputRef.current?.click();
   };
 
   const handleTouchStart = (e) => {
@@ -321,12 +323,14 @@ function FileUpload({ onFileProcessed, onStatusChange, className }) {
               className="p-4 md:p-6 text-center"
             >
               <input
-                id="mobile-file-input"
+                ref={fileInputRef}
                 type="file"
-                accept=".pdf"
+                accept="application/pdf"  // Explicitly specify PDF
+                capture={false}          // Prevent camera capture
+                multiple={false}         // Allow only single file
+                id="mobile-file-input"
                 onChange={handleFileChange}
                 className="hidden"
-                capture="environment"
               />
               <div className="space-y-3">
                 <div className="w-12 h-12 mx-auto rounded-full bg-violet-500/20 flex items-center justify-center">
@@ -337,15 +341,19 @@ function FileUpload({ onFileProcessed, onStatusChange, className }) {
                 
                 {/* Mobile Upload Button */}
                 <button
-                  onClick={handleMobileUpload}
-                  className="w-full sm:w-auto px-4 py-2 bg-violet-600 text-white rounded-lg
-                           flex items-center justify-center gap-2 mx-auto
-                           active:scale-95 transition-all duration-200"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    fileInputRef.current?.click();
+                  }}
+                  type="button"
+                  className="w-full px-4 py-2.5 rounded-lg border border-violet-500/20
+                            bg-violet-500/10 hover:bg-violet-500/20
+                            transition-all duration-300 text-violet-300
+                            flex items-center justify-center gap-2"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                  </svg>
-                  <span className="font-medium">Upload PDF</span>
+                  <span>📄</span>
+                  <span className="text-sm font-medium">Select PDF</span>
                 </button>
 
                 <div className="text-sm text-gray-400">
