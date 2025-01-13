@@ -214,7 +214,7 @@ What would you like to know more about?`;
     const newMessages = [{
       role: 'assistant',
       model: 'gemini-1.5-flash',
-      content: 'Hello! I\'m your learning assistant. How can I help you today?'
+      content: 'Hello! How can I help you with your learning today?'
     }];
     setMessages(newMessages);
     setGeneralChat(newMessages);
@@ -385,8 +385,8 @@ What would you like to know more about?`
   const ModelBadge = ({ model }) => {
     return (
       <div className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-violet-500/20 text-violet-300">
-        <span className="mr-1">🤖</span>
-        AI Assistant
+        <span className="mr-1">📚</span>
+        Assistant
       </div>
     );
   };
@@ -434,9 +434,9 @@ What would you like to know more about?`
               className={`relative flex items-center gap-2 px-4 py-2 rounded-md transition-all duration-200 z-10
                 ${!isDocMode ? 'text-white' : 'text-gray-400 hover:text-gray-300'}`}
             >
-              <span className={`text-lg ${!isDocMode ? 'animate-scale-in' : ''}`}>🤖</span>
+              <span className={`text-lg ${!isDocMode ? 'animate-scale-in' : ''}`}>💭</span>
               <span className={`text-sm font-medium ${!isDocMode ? 'animate-slide-fade' : ''}`}>
-                AI Chat
+                General
               </span>
             </button>
             <button
@@ -453,13 +453,10 @@ What would you like to know more about?`
             </button>
           </div>
           {initialContext && (
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-green-500/10 animate-slide-fade
-                          border border-green-500/20 rounded-full">
-              <div className="relative">
-                <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                <div className="absolute inset-0 w-2 h-2 rounded-full bg-green-500 animate-ping opacity-75"></div>
-              </div>
-              <span className="text-xs text-green-400 font-medium">Analysis Ready</span>
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-violet-500/10 animate-slide-fade
+                          border border-violet-500/20 rounded-full">
+              <div className="w-2 h-2 rounded-full bg-violet-400"></div>
+              <span className="text-xs text-violet-300 font-medium">Document Ready</span>
             </div>
           )}
         </div>

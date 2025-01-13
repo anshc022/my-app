@@ -97,6 +97,21 @@ function FileUpload({ onFileProcessed, className }) {
     }
   }, [currentUpload, files]);
 
+  const handleMobileUpload = () => {
+    // Trigger file input click for mobile
+    document.getElementById('mobile-file-input').click();
+  };
+
+  const handleTouchStart = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleTouchEnd = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
   return (
     <div className={`${className || ''}`}>
       <div 
@@ -105,6 +120,8 @@ function FileUpload({ onFileProcessed, className }) {
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
       >
         <AnimatePresence mode="wait">
           {files.length === 0 ? (
@@ -112,24 +129,41 @@ function FileUpload({ onFileProcessed, className }) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="p-6 text-center"
+              className="p-4 md:p-6 text-center"
             >
               <input
+                id="mobile-file-input"
                 type="file"
                 accept=".pdf"
                 onChange={handleFileChange}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                className="hidden"
+                capture="environment"
               />
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <div className="w-12 h-12 mx-auto rounded-full bg-violet-500/20 flex items-center justify-center">
                   <svg className="w-6 h-6 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                   </svg>
                 </div>
+                
+                {/* Mobile Upload Button */}
+                <button
+                  onClick={handleMobileUpload}
+                  className="w-full sm:w-auto px-4 py-2 bg-violet-600 text-white rounded-lg
+                           flex items-center justify-center gap-2 mx-auto
+                           active:scale-95 transition-all duration-200"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  <span className="font-medium">Upload PDF</span>
+                </button>
+
                 <div className="text-sm text-gray-400">
-                  <span className="font-medium">Click to upload</span> or drag and drop
+                  <span className="hidden sm:inline">or drag and drop</span>
+                  <span className="sm:hidden">Max file size: 16MB</span>
                 </div>
-                <p className="text-xs text-gray-500">PDF (up to 16MB)</p>
+                <p className="text-xs text-gray-500">Supported format: PDF</p>
               </div>
             </motion.div>
           ) : (
@@ -137,14 +171,18 @@ function FileUpload({ onFileProcessed, className }) {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="p-4 space-y-2"
+              className="p-3 space-y-2"
             >
               {files.map((file, index) => (
-                <div
+                <motion.div
                   key={file.name}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
                   className={`flex items-center gap-3 p-3 rounded-lg
                     ${currentUpload?.name === file.name ? 'bg-violet-500/20' : 'bg-gray-800/30'}`}
                 >
+                  {/* File Item UI */}
                   <div className="w-10 h-10 rounded-lg bg-violet-500/30 flex items-center justify-center">
                     <svg className="w-5 h-5 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -157,24 +195,27 @@ function FileUpload({ onFileProcessed, className }) {
                     </p>
                   </div>
                   {currentUpload?.name === file.name ? (
-                    <div className="w-5 h-5 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
+                    <div className="upload-progress">
+                      <div className="w-5 h-5 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
+                    </div>
                   ) : (
                     <button
                       onClick={() => handleRemoveFile(file.name)}
-                      className="p-1 hover:bg-gray-700/50 rounded-lg transition-colors"
+                      className="p-2 hover:bg-gray-700/50 rounded-lg transition-colors
+                               active:scale-95 touch-action-manipulation"
                     >
                       <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       </svg>
                     </button>
                   )}
-                </div>
+                </motion.div>
               ))}
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Status Message */}
+        {/* Status Message with improved mobile visibility */}
         <AnimatePresence>
           {status && (
             <motion.div
@@ -196,6 +237,13 @@ function FileUpload({ onFileProcessed, className }) {
             </motion.div>
           )}
         </AnimatePresence>
+      </div>
+
+      {/* Mobile Instructions */}
+      <div className="mt-4 text-center sm:hidden">
+        <p className="text-xs text-gray-400">
+          Tap the upload button to select a PDF file from your device
+        </p>
       </div>
     </div>
   );

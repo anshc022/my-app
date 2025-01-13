@@ -137,6 +137,14 @@ module.exports = {
       transformStyle: {
         'perspective-1000': 'perspective(1000px)',
       },
+      touchAction: {
+        manipulation: 'manipulation',
+      },
+    },
+  },
+  variants: {
+    extend: {
+      touchAction: ['responsive'],
     },
   },
   plugins: [

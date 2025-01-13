@@ -26,6 +26,7 @@ function Dashboard() {
   const [isGeneratingGraph, setIsGeneratingGraph] = useState(false);
   const [chatContext, setChatContext] = useState(null);
   const [chatMode, setChatMode] = useState('general');
+  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const navigate = useNavigate();
 
   const handleFileProcessed = async (response) => {
@@ -131,6 +132,81 @@ function Dashboard() {
     setIsMobileMenuOpen(false);
   };
 
+  // Add mobile drawer component
+  const MobileDrawer = () => (
+    <motion.div
+      initial={{ x: '100%' }}
+      animate={{ x: 0 }}
+      exit={{ x: '100%' }}
+      className="fixed inset-y-0 right-0 w-4/5 max-w-sm bg-gray-900/95 backdrop-blur-lg z-50 
+                 border-l border-white/10 shadow-2xl"
+    >
+      <div className="p-4 space-y-4">
+        <div className="flex justify-between items-center">
+          <h2 className="text-lg font-semibold text-white">Features</h2>
+          <button
+            onClick={() => setIsMobileDrawerOpen(false)}
+            className="p-2 hover:bg-gray-800 rounded-lg"
+          >
+            <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Mobile Feature Grid */}
+        <div className="grid grid-cols-2 gap-3">
+          <MobileFeatureButton
+            icon="📄"
+            label="Upload"
+            onClick={() => document.getElementById('mobile-file-input')?.click()}
+          />
+          <MobileFeatureButton
+            icon="🎴"
+            label="Flashcards"
+            onClick={() => setIsFlashcardsOpen(true)}
+            disabled={!analysisData}
+          />
+          <MobileFeatureButton
+            icon="📝"
+            label="Quiz"
+            onClick={handleCreateQuiz}
+            disabled={!analysisData || isGeneratingQuiz}
+            loading={isGeneratingQuiz}
+          />
+          <MobileFeatureButton
+            icon="📚"
+            label="Study Guide"
+            onClick={handleStudyGuideClick}
+            disabled={!analysisData || isGeneratingStudyGuide}
+            loading={isGeneratingStudyGuide}
+          />
+          <MobileFeatureButton
+            icon="📊"
+            label="Graph"
+            onClick={handleKnowledgeGraphClick}
+            disabled={!analysisData || isGeneratingGraph}
+            loading={isGeneratingGraph}
+          />
+        </div>
+      </div>
+    </motion.div>
+  );
+
+  const MobileFeatureButton = ({ icon, label, onClick, disabled, loading }) => (
+    <button
+      onClick={onClick}
+      disabled={disabled || loading}
+      className={`flex flex-col items-center justify-center p-4 rounded-xl
+                 ${disabled ? 'opacity-50' : 'active:scale-95'}
+                 ${loading ? 'bg-violet-500/20' : 'bg-gray-800/50 hover:bg-gray-700/50'}
+                 transition-all duration-200`}
+    >
+      <span className="text-2xl mb-2">{loading ? '⌛' : icon}</span>
+      <span className="text-sm text-gray-300">{loading ? 'Loading...' : label}</span>
+    </button>
+  );
+
   return (
     <div className="min-h-screen w-full bg-gray-900 relative overflow-hidden">
       {/* Enhanced Background Effects */}
@@ -153,74 +229,40 @@ function Dashboard() {
       </div>
 
       <div className="max-w-[100rem] mx-auto h-screen flex flex-col relative z-10">
-        {/* Enhanced Header with improved navigation */}
+        {/* Mobile Header - Keep this one */}
         <header className="flex justify-between items-center p-4 glass-card backdrop-blur-md border-b border-white/10 sticky top-0 z-50">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={handleBack}
-              className="group flex items-center gap-2 px-3 py-2 rounded-lg 
-                        bg-gray-800/50 hover:bg-gray-700/50 transition-all duration-300
-                        text-gray-400 hover:text-white active:scale-95"
-              aria-label="Go back"
-            >
-              <svg 
-                className="w-5 h-5 transition-transform group-hover:-translate-x-1" 
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-              <span className="text-sm font-medium">Back</span>
-            </button>
-            
-            <div className="h-6 w-px bg-gray-700/50 hidden sm:block" />
-            
-            <h1 className="text-lg md:text-xl font-bold bg-clip-text text-transparent 
-                         bg-gradient-to-r from-violet-400 to-blue-400 flex items-center gap-2">
-              <span className="hidden sm:inline">AI</span> Learning Assistant
-              <div className="flex items-center gap-2 ml-2 px-2 py-0.5 rounded-full 
-                            bg-green-500/10 border border-green-500/20">
-                <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></div>
-                <span className="text-xs text-green-400 font-medium">Live</span>
-              </div>
-            </h1>
-          </div>
-          
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setIsMobileMenuOpen(true)}
-              className="md:hidden p-2 hover:bg-gray-800/50 rounded-lg transition-colors"
-            >
-              <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
+          <button
+            onClick={handleBack}
+            className="group flex items-center gap-2 px-3 py-2 rounded-lg 
+                      bg-gray-800/50 hover:bg-gray-700/50 transition-all duration-300
+                      text-gray-400 hover:text-white active:scale-95"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            <span className="text-sm font-medium">Back</span>
+          </button>
 
-            <nav className="hidden md:flex items-center gap-2">
-              <button className="px-3 py-1.5 text-sm text-gray-400 hover:text-white 
-                               hover:bg-gray-800/50 rounded-lg transition-all duration-300">
-                Dashboard
-              </button>
-              <button className="px-3 py-1.5 text-sm text-gray-400 hover:text-white 
-                               hover:bg-gray-800/50 rounded-lg transition-all duration-300">
-                History
-              </button>
-              <button className="px-3 py-1.5 text-sm text-gray-400 hover:text-white 
-                               hover:bg-gray-800/50 rounded-lg transition-all duration-300">
-                Settings
-              </button>
-            </nav>
+          <h1 className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-blue-400">
+            Learning Hub
+          </h1>
 
-            <div className="h-6 w-px bg-gray-700/50 hidden md:block" />
-
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full 
-                          border border-white/10 bg-gray-900/50">
-              <div className="w-2 h-2 rounded-full bg-violet-400 animate-pulse"></div>
-              <span className="text-xs text-gray-400 hidden sm:block">AI Ready</span>
-            </div>
-          </div>
+          <button
+            onClick={() => setIsMobileDrawerOpen(true)}
+            className="p-2 hover:bg-gray-800/50 rounded-lg"
+          >
+            <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
+            </svg>
+          </button>
         </header>
+
+        {/* Delete the second header that starts with "Enhanced Header with improved navigation" */}
+
+        {/* Continue with existing mobile drawer and content */}
+        <AnimatePresence>
+          {isMobileDrawerOpen && <MobileDrawer />}
+        </AnimatePresence>
 
         {/* Main Content Area - Modified for full screen */}
         <div className="flex-1 flex flex-col md:flex-row gap-4 p-4 h-[calc(100vh-80px)]">
