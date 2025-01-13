@@ -480,8 +480,8 @@ function Dashboard() {
       </div>
 
       <div className="max-w-[100rem] mx-auto h-screen flex flex-col relative z-10">
-        {/* Mobile Header - Keep this one */}
-        <header className="flex justify-between items-center p-4 glass-card backdrop-blur-md border-b border-white/10 sticky top-0 z-50">
+        {/* Simplified Header - Only Back Button */}
+        <header className="flex justify-start items-center p-4 glass-card backdrop-blur-md border-b border-white/10 sticky top-0 z-50">
           <button
             onClick={handleBack}
             className="group flex items-center gap-2 px-3 py-2 rounded-lg 
@@ -493,22 +493,9 @@ function Dashboard() {
             </svg>
             <span className="text-sm font-medium">Back</span>
           </button>
-
-          <h1 className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-blue-400">
-            Learning Hub
-          </h1>
-
-          <button
-            onClick={() => setIsMobileDrawerOpen(true)}
-            className="p-2 hover:bg-gray-800/50 rounded-lg"
-          >
-            <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
-            </svg>
-          </button>
         </header>
 
-        {/* Feature Bar - Now only shows on mobile */}
+        {/* Rest of the components remain unchanged */}
         <FeatureBar />
 
         {/* Main Content Area - Modified for full screen */}
