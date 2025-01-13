@@ -157,14 +157,15 @@ function Dashboard() {
       animate={{ x: 0 }}
       exit={{ x: '100%' }}
       className="fixed inset-y-0 right-0 w-4/5 max-w-sm bg-gray-900/95 backdrop-blur-lg z-50 
-                 border-l border-white/10 shadow-2xl"
+                 border-l border-white/10 shadow-2xl overflow-y-auto"
     >
-      <div className="p-4 space-y-4">
-        <div className="flex justify-between items-center">
-          <h2 className="text-lg font-semibold text-white">Features</h2>
+      <div className="p-4 space-y-6">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-semibold text-white">Features</h2>
           <button
             onClick={() => setIsMobileDrawerOpen(false)}
-            className="p-2 hover:bg-gray-800 rounded-lg"
+            className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
           >
             <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -172,25 +173,31 @@ function Dashboard() {
           </button>
         </div>
 
-        {/* Mobile Feature Grid */}
-        <div className="grid grid-cols-2 gap-3">
+        {/* Enhanced Mobile Feature Grid */}
+        <div className="grid grid-cols-2 gap-4">
           <MobileFeatureButton
             icon="📄"
-            label="Upload"
-            onClick={() => document.getElementById('mobile-file-input')?.click()}
+            label="Upload Document"
+            onClick={(e) => {
+              e.preventDefault();
+              document.getElementById('mobile-file-input')?.click();
+            }}
+            gradient="from-blue-500 to-violet-500"
           />
           <MobileFeatureButton
             icon="🎴"
             label="Flashcards"
             onClick={() => setIsFlashcardsOpen(true)}
             disabled={!analysisData}
+            gradient="from-purple-500 to-pink-500"
           />
           <MobileFeatureButton
-            icon="📝"
-            label="Quiz"
+            icon="❓"
+            label="Generate Quiz"
             onClick={handleCreateQuiz}
             disabled={!analysisData || isGeneratingQuiz}
             loading={isGeneratingQuiz}
+            gradient="from-green-500 to-emerald-500"
           />
           <MobileFeatureButton
             icon="📚"
@@ -198,73 +205,171 @@ function Dashboard() {
             onClick={handleStudyGuideClick}
             disabled={!analysisData || isGeneratingStudyGuide}
             loading={isGeneratingStudyGuide}
+            gradient="from-orange-500 to-red-500"
           />
           <MobileFeatureButton
             icon="📊"
-            label="Graph"
+            label="Knowledge Graph"
             onClick={handleKnowledgeGraphClick}
             disabled={!analysisData || isGeneratingGraph}
             loading={isGeneratingGraph}
+            gradient="from-pink-500 to-rose-500"
+          />
+          <MobileFeatureButton
+            icon="💭"
+            label="Chat Assistant"
+            onClick={() => setIsMobileDrawerOpen(false)}
+            gradient="from-teal-500 to-cyan-500"
           />
         </div>
+
+        {/* Additional Info */}
+        {!analysisData && (
+          <div className="mt-6 p-4 rounded-lg bg-gray-800/50 border border-white/5">
+            <p className="text-sm text-gray-400 text-center">
+              Upload a document to unlock all features
+            </p>
+          </div>
+        )}
       </div>
     </motion.div>
   );
 
-  const MobileFeatureButton = ({ icon, label, onClick, disabled, loading }) => (
-    <button
-      onClick={onClick}
-      disabled={disabled || loading}
-      className={`flex flex-col items-center justify-center p-4 rounded-xl
-                 ${disabled ? 'opacity-50' : 'active:scale-95'}
-                 ${loading ? 'bg-violet-500/20' : 'bg-gray-800/50 hover:bg-gray-700/50'}
-                 transition-all duration-200`}
-    >
-      <span className="text-2xl mb-2">{loading ? '⌛' : icon}</span>
-      <span className="text-sm text-gray-300">{loading ? 'Loading...' : label}</span>
-    </button>
+  // Add ProBadge component
+  const ProBadge = () => (
+    <div className="absolute -top-2 -right-2 z-10">
+      <div className="relative">
+        <div className="px-2 py-0.5 text-[10px] font-bold bg-gradient-to-r from-amber-500 to-orange-500 
+                      rounded-full text-white shadow-lg 
+                      animate-pulse border border-amber-400/20">
+          PRO
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-r from-amber-500 to-orange-500 
+                      rounded-full blur-lg opacity-40 animate-pulse"></div>
+      </div>
+    </div>
   );
 
-  const FeatureBar = () => (
-    <div className="w-full bg-gray-800/50 border-b border-white/10 backdrop-blur-md">
-      <div className="max-w-7xl mx-auto px-4 py-2">
-        <div className="flex items-center gap-2 overflow-x-auto scrollbar-none">
-          {/* Upload Button - Always Active */}
-          <button
-            onClick={() => document.getElementById('mobile-file-input')?.click()}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-violet-600/20 text-violet-300
-                     hover:bg-violet-600/30 transition-all duration-200 whitespace-nowrap"
-          >
-            <span>📄</span>
-            <span className="text-sm font-medium">Upload PDF</span>
-          </button>
+  // Update MobileFeatureButton to include ProBadge
+  const MobileFeatureButton = ({ icon, label, onClick, disabled, loading, gradient, isPro = true }) => (
+    <motion.button
+      onClick={onClick}
+      disabled={disabled || loading}
+      whileTap={{ scale: 0.95 }}
+      className={`relative flex flex-col items-center justify-center p-4 rounded-xl
+                 overflow-hidden transition-all duration-300
+                 ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-lg hover:shadow-black/20'}
+                 ${loading ? 'animate-pulse' : ''}`}
+    >
+      {isPro && <ProBadge />}
+      {/* Gradient Background */}
+      <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-10`} />
+      
+      {/* Glass Effect */}
+      <div className="absolute inset-0 bg-gray-800/50 backdrop-blur-sm" />
+      
+      {/* Content */}
+      <div className="relative z-10 space-y-2">
+        <span className="text-2xl block mb-1">
+          {loading ? '⌛' : icon}
+        </span>
+        <span className="text-sm font-medium text-gray-200 block">
+          {loading ? 'Loading...' : label}
+        </span>
+      </div>
 
-          {/* Feature Buttons */}
+      {/* Active Indicator */}
+      {!disabled && !loading && (
+        <div className="absolute bottom-2 right-2 w-1.5 h-1.5 rounded-full bg-green-400" />
+      )}
+    </motion.button>
+  );
+
+  // Update FeatureBar component to include ProBadge
+  const FeatureBar = () => (
+    <div className="md:hidden w-full bg-gray-900/95 border-b border-white/10 backdrop-blur-lg">
+      <div className="max-w-7xl mx-auto px-2 py-3">
+        {/* Scrollable container with custom scrollbar */}
+        <div className="flex items-center gap-2 overflow-x-auto 
+                      scrollbar-thin scrollbar-thumb-violet-500/20 scrollbar-track-transparent
+                      pb-2 -mb-2">
+          {/* Upload Button with special styling */}
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            onClick={(e) => {
+              e.preventDefault();
+              document.getElementById('mobile-file-input')?.click();
+            }}
+            className="relative flex-shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl
+                      bg-gradient-to-r from-violet-600/20 to-blue-600/20 
+                      border border-white/10 hover:border-violet-500/50
+                      transition-all duration-300"
+          >
+            <ProBadge />
+            <span className="text-lg">📄</span>
+            <span className="text-sm font-medium text-violet-200">Upload</span>
+          </motion.button>
+
+          {/* Feature Buttons with consistent styling */}
           {[
-            { id: 'summary', icon: '📝', label: 'Summary', action: () => handleFeatureClick('Summary') },
-            { id: 'flashcards', icon: '🎴', label: 'Flashcards', action: () => setIsFlashcardsOpen(true) },
+            { id: 'flashcards', icon: '🎴', label: 'Cards', action: () => setIsFlashcardsOpen(true) },
             { id: 'quiz', icon: '❓', label: 'Quiz', action: handleCreateQuiz, loading: isGeneratingQuiz },
-            { id: 'guide', icon: '📚', label: 'Study Guide', action: handleStudyGuideClick, loading: isGeneratingStudyGuide },
-            { id: 'graph', icon: '📊', label: 'Knowledge Graph', action: handleKnowledgeGraphClick, loading: isGeneratingGraph }
+            { id: 'guide', icon: '📚', label: 'Guide', action: handleStudyGuideClick, loading: isGeneratingStudyGuide },
+            { id: 'graph', icon: '📊', label: 'Graph', action: handleKnowledgeGraphClick, loading: isGeneratingGraph }
           ].map((feature) => (
-            <button
+            <motion.button
               key={feature.id}
+              whileTap={{ scale: 0.95 }}
               onClick={feature.action}
               disabled={!analysisData || feature.loading}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200
-                       ${!analysisData ? 'opacity-50 cursor-not-allowed text-gray-400' :
-                        feature.loading ? 'bg-violet-500/20 text-violet-300' :
-                        'bg-gray-700/50 text-gray-300 hover:bg-gray-700/80'}
-                       whitespace-nowrap`}
+              className={`relative flex-shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl
+                        transition-all duration-300 relative group
+                        ${!analysisData || feature.loading 
+                          ? 'opacity-50 cursor-not-allowed bg-gray-800/50' 
+                          : 'bg-gray-800/50 hover:bg-gray-700/50 hover:border-violet-500/30 active:bg-gray-700/70'}
+                        border border-white/5`}
             >
-              <span>{feature.loading ? '⌛' : feature.icon}</span>
-              <span className="text-sm font-medium">{feature.loading ? 'Loading...' : feature.label}</span>
-            </button>
+              <ProBadge />
+              {/* Icon and Label */}
+              <span className="text-lg">{feature.loading ? '⌛' : feature.icon}</span>
+              <span className="text-sm font-medium text-gray-200">
+                {feature.loading ? 'Loading...' : feature.label}
+              </span>
+              
+              {/* Active/Loading Indicator */}
+              {(!feature.loading && analysisData) && (
+                <div className="absolute inset-0 rounded-xl bg-violet-400/5 opacity-0 
+                              group-hover:opacity-100 transition-opacity duration-300"/>
+              )}
+              
+              {/* Loading Animation */}
+              {feature.loading && (
+                <div className="absolute inset-0 rounded-xl overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-violet-500/10 to-transparent
+                                -translate-x-full animate-shimmer"/>
+                </div>
+              )}
+            </motion.button>
           ))}
         </div>
       </div>
     </div>
   );
+
+  // Add this to your existing animations or create new ones
+  const shimmerAnimation = {
+    '.animate-shimmer': {
+      animation: 'shimmer 2s infinite',
+    },
+    '@keyframes shimmer': {
+      '0%': {
+        transform: 'translateX(-100%)',
+      },
+      '100%': {
+        transform: 'translateX(100%)',
+      },
+    },
+  };
 
   const UploadStatus = () => {
     if (!uploadStatus.isUploading) return null;
@@ -328,6 +433,21 @@ function Dashboard() {
     );
   };
 
+  // Update sidebar feature buttons to include ProBadge
+  const SidebarFeatureButton = ({ icon, title, onClick, disabled, loading }) => (
+    <button
+      onClick={onClick}
+      disabled={disabled || loading}
+      className="relative w-full p-2 rounded-lg flex items-center gap-2 transition-colors
+                 disabled:opacity-50 disabled:cursor-not-allowed
+                 hover:bg-gray-800/50 text-gray-300"
+    >
+      <ProBadge />
+      <span>{icon}</span>
+      <span className="text-sm">{title}</span>
+    </button>
+  );
+
   return (
     <div className="min-h-screen w-full bg-gray-900 relative overflow-hidden">
       {/* Add UploadStatus at the top level */}
@@ -388,7 +508,7 @@ function Dashboard() {
           </button>
         </header>
 
-        {/* Feature Bar */}
+        {/* Feature Bar - Now only shows on mobile */}
         <FeatureBar />
 
         {/* Main Content Area - Modified for full screen */}
@@ -415,20 +535,15 @@ function Dashboard() {
                 <h2 className="text-sm font-medium text-gray-400 mb-3">Features</h2>
                 <div className="space-y-2">
                   {[
-                    { title: "Summaries", icon: "📝" },
                     { title: "Flashcards", icon: "🎴" }
                   ].map((feature, i) => (
-                    <button
+                    <SidebarFeatureButton
                       key={i}
+                      icon={feature.icon}
+                      title={feature.title}
                       onClick={() => analysisData && handleFeatureClick(feature.title)}
-                      className={`w-full p-2 rounded-lg flex items-center gap-2 transition-colors
-                        ${!analysisData ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-800/50'} 
-                        ${selectedFeature === feature.title ? 'bg-violet-500/20 text-violet-300' : 'text-gray-300'}`}
                       disabled={!analysisData}
-                    >
-                      <span>{feature.icon}</span>
-                      <span className="text-sm">{feature.title}</span>
-                    </button>
+                    />
                   ))}
                   <button
                     onClick={handleCreateQuiz}
@@ -536,7 +651,6 @@ function Dashboard() {
               <div className="grid grid-cols-3 gap-3">
                 {[
                   { id: 'upload', icon: '📄', label: 'Upload' },
-                  { id: 'summary', icon: '📝', label: 'Summary' },
                   { id: 'flashcards', icon: '🎴', label: 'Cards' },
                   { id: 'quiz', icon: '❓', label: 'Quiz' },
                   { id: 'guide', icon: '📚', label: 'Guide' },
